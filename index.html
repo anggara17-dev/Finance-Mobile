@@ -2,124 +2,227 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CuanTracker v3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CuanTracker Elite</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/framer-motion/11.1.7/framer-motion.umd.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #fcfcfd; }
-    .card-shadow { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04); }
+    * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; outline: none !important; }
+    body { background-color: #f8fafc; color: #0f172a; overflow: hidden; }
+    
+    /* Premium Glass Effect */
+    .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); }
+    .dark-card { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+    
+    /* Custom Shadows */
+    .premium-shadow { box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.05); }
+    .inset-shadow { box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05); }
+    
+    /* Animations */
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+    
     .no-scrollbar::-webkit-scrollbar { display: none; }
-    /* Pinterest style rounded */
-    .rounded-p { border-radius: 24px; }
-    /* Loading kecil saja di pojok, jangan nutup layar */
-    #mini-loader { transition: opacity 0.3s; opacity: 0; }
-    #mini-loader.active { opacity: 1; }
+    
+    /* Haptic feedback simulation */
+    .btn-haptic:active { transform: scale(0.96); }
+    .btn-haptic { transition: transform 0.1s ease; }
+
+    /* Custom Input appearance */
+    input[type="month"]::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; right: 0; width: 100%; cursor: pointer; }
   </style>
 </head>
-<body class="h-full text-slate-800">
+<body class="h-full">
 
-  <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-max hidden animate-bounce"></div>
+  <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 z-[200] w-max hidden pointer-events-none"></div>
 
-  <div id="login-screen" class="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-white">
-    <div class="w-full max-w-xs text-center">
-      <div class="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-        <i data-lucide="leaf" class="text-green-600 w-8 h-8"></i>
+  <div id="login-screen" class="fixed inset-0 z-[150] flex items-center justify-center bg-white p-8">
+    <div class="w-full max-w-sm">
+      <div class="mb-12 text-center">
+        <div class="w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl">
+          <i data-lucide="component" class="text-white w-10 h-10"></i>
+        </div>
+        <h1 class="text-3xl font-extrabold tracking-tighter italic">CuanTracker<span class="text-blue-600">.</span></h1>
+        <p class="text-slate-400 text-sm mt-2 font-medium">Exclusive Financial Management</p>
       </div>
-      <h1 class="text-2xl font-extrabold tracking-tighter mb-8">CuanTracker.</h1>
-      <form id="login-form" class="space-y-3">
-        <input id="login-name" type="text" placeholder="Username" class="w-full bg-slate-100 rounded-2xl px-5 py-4 outline-none focus:bg-white focus:ring-2 focus:ring-green-600 transition-all text-sm font-semibold" required>
-        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold active:scale-95 transition-all text-sm">Masuk Dashboard</button>
+      <form id="login-form" class="space-y-4">
+        <div class="relative">
+          <i data-lucide="user" class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+          <input id="login-name" type="text" placeholder="Access Key / Username" class="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-5 py-4 text-sm font-semibold focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all outline-none" required>
+        </div>
+        <button type="submit" class="btn-haptic w-full py-4 rounded-2xl bg-slate-900 text-white font-bold shadow-xl shadow-slate-200 text-sm tracking-wide">Authorize Access</button>
       </form>
     </div>
   </div>
 
-  <div id="main-app" class="hidden max-w-5xl mx-auto flex flex-col md:flex-row h-screen overflow-hidden">
+  <div id="main-app" class="hidden h-screen flex flex-col md:flex-row max-w-[1440px] mx-auto overflow-hidden">
     
-    <div class="flex-1 overflow-y-auto no-scrollbar p-5 md:p-10 space-y-8">
-      <header class="flex justify-between items-center">
-        <div>
-          <h2 class="text-xl font-extrabold tracking-tight">Ringkasan</h2>
-          <div id="mini-loader" class="flex items-center gap-2 mt-1">
-             <div class="w-2 h-2 bg-green-600 rounded-full animate-ping"></div>
-             <span class="text-[10px] font-bold text-slate-400 uppercase">Syncing...</span>
-          </div>
-        </div>
-        <button onclick="refreshData()" class="p-2 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="rotate-cw" class="w-4 h-4 text-slate-500"></i></button>
-      </header>
-
-      <div class="grid grid-cols-1 gap-4">
-        <div class="bg-slate-900 rounded-p p-8 text-white relative overflow-hidden">
-          <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Saldo Total</p>
-          <h3 id="dash-balance" class="text-3xl font-black mt-1 tracking-tight">Rp 0</h3>
-          <i data-lucide="wallet" class="absolute right-[-10px] bottom-[-10px] w-32 h-32 opacity-10 rotate-12"></i>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-white rounded-p p-6 card-shadow border border-slate-50">
-            <p class="text-[9px] font-bold text-slate-400 uppercase">Pemasukan</p>
-            <h4 id="dash-inc" class="text-lg font-bold text-green-600">Rp 0</h4>
-          </div>
-          <div class="bg-white rounded-p p-6 card-shadow border border-slate-50">
-            <p class="text-[9px] font-bold text-slate-400 uppercase">Pengeluaran</p>
-            <h4 id="dash-exp" class="text-lg font-bold text-red-500">Rp 0</h4>
-          </div>
+    <div class="w-full md:w-80 glass border-r border-slate-100 p-6 md:p-8 flex flex-col z-50">
+      <div class="flex items-center justify-between mb-10">
+        <h2 class="text-xl font-bold tracking-tighter italic">CT<span class="text-blue-600">.</span></h2>
+        <div id="sync-status" class="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full">
+          <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+          <span class="text-[10px] font-bold text-green-600 uppercase tracking-tighter">Live Sync</span>
         </div>
       </div>
 
-      <div class="space-y-4">
-        <div class="flex justify-between items-center">
-          <h3 class="font-bold">Aktivitas</h3>
-          <input id="filter-month" type="month" class="bg-transparent border-0 text-xs font-bold outline-none text-slate-500">
+      <div class="flex-1 space-y-2">
+        <div class="p-4 bg-slate-900 rounded-2xl text-white mb-6">
+          <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest mb-1">Authenticated as</p>
+          <p id="user-display" class="font-bold truncate text-sm"></p>
         </div>
-        <div id="tx-list" class="space-y-3"></div>
-      </div>
-    </div>
-
-    <div class="w-full md:w-96 bg-white border-l border-slate-100 p-5 md:p-10 shadow-2xl md:shadow-none relative z-10">
-      <div class="mb-8">
-        <h3 class="text-lg font-bold">Catat Baru</h3>
-        <p class="text-xs text-slate-400">Gunakan (-) untuk pengeluaran otomatis.</p>
-      </div>
-
-      <form id="tx-form" class="space-y-5">
-        <div class="flex bg-slate-100 p-1 rounded-2xl">
-          <button type="button" id="type-inc" class="flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all bg-white shadow-sm text-slate-900">Pemasukan</button>
-          <button type="button" id="type-exp" class="flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all text-slate-400">Pengeluaran</button>
-        </div>
-
-        <div class="space-y-1">
-          <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Keterangan</label>
-          <input id="inp-desc" type="text" placeholder="Makan ayam geprek" class="w-full bg-slate-50 border-0 rounded-2xl px-5 py-4 text-sm font-semibold outline-none focus:ring-2 focus:ring-green-600 transition-all" required>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4">
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nominal</label>
-            <input id="inp-amt" type="number" placeholder="0" class="w-full bg-slate-50 border-0 rounded-2xl px-5 py-4 text-lg font-black outline-none focus:ring-2 focus:ring-green-600 transition-all" required>
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
-            <select id="inp-cat" class="w-full bg-slate-50 border-0 rounded-2xl px-4 py-4 text-sm font-bold outline-none appearance-none">
-              <option value="Makanan">🍚 Makanan</option>
-              <option value="Gaji">💰 Gaji</option>
-              <option value="Belanja">🛒 Belanja</option>
-              <option value="Tagihan">💡 Tagihan</option>
-              <option value="Lainnya">📌 Lainnya</option>
-            </select>
-          </div>
-        </div>
-
-        <input id="inp-date" type="date" class="w-full bg-slate-50 border-0 rounded-2xl px-4 py-4 text-xs font-bold outline-none">
         
-        <button type="submit" id="btn-save" class="w-full py-5 rounded-p bg-green-600 text-white font-black text-sm shadow-lg shadow-green-900/20 active:scale-95 transition-all">Simpan</button>
-      </form>
+        <nav class="space-y-1">
+          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 text-slate-900 font-bold text-sm">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i> Overview
+          </button>
+          <button onclick="showToast('Feature Coming Soon')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 font-medium text-sm hover:bg-slate-50 transition-all">
+            <i data-lucide="pie-chart" class="w-4 h-4"></i> Analytics
+          </button>
+          <button onclick="location.reload()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 font-medium text-sm hover:bg-slate-50 transition-all">
+            <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+          </button>
+        </nav>
+      </div>
+
+      <div class="hidden md:block p-4 bg-blue-50 rounded-2xl">
+        <p class="text-[10px] font-bold text-blue-600 uppercase mb-2">Pro Tip</p>
+        <p class="text-[11px] text-blue-800 leading-relaxed font-medium">Catat pengeluaran rutinmu di awal bulan untuk proyeksi saldo yang lebih akurat.</p>
+      </div>
     </div>
+
+    <div class="flex-1 overflow-y-auto no-scrollbar p-5 md:p-10 space-y-10 pb-32">
+      <section class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="space-y-1">
+          <h1 class="text-3xl font-extrabold tracking-tight">Executive Dashboard</h1>
+          <p class="text-slate-400 font-medium text-sm">Your financial performance this month.</p>
+        </div>
+        <div class="flex items-center gap-3 bg-white p-1.5 rounded-2xl premium-shadow border border-slate-50">
+          <button id="prev-month" class="p-2 hover:bg-slate-50 rounded-xl transition-all"><i data-lucide="chevron-left" class="w-4 h-4 text-slate-400"></i></button>
+          <div class="relative px-2">
+            <span id="month-display" class="text-xs font-bold text-slate-700">Mei 2026</span>
+            <input id="filter-month" type="month" class="absolute inset-0 opacity-0 cursor-pointer">
+          </div>
+          <button id="next-month" class="p-2 hover:bg-slate-50 rounded-xl transition-all"><i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i></button>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 dark-card rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden shadow-2xl shadow-slate-200">
+          <div class="relative z-10">
+            <div class="flex justify-between items-start mb-10">
+              <p class="text-xs font-bold opacity-60 uppercase tracking-[0.2em]">Liquid Assets Balance</p>
+              <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md"><i data-lucide="landmark" class="w-6 h-6"></i></div>
+            </div>
+            <h2 id="dash-balance" class="text-5xl md:text-6xl font-black tracking-tighter mb-8">Rp 0</h2>
+            <div class="flex gap-6 border-t border-white/10 pt-8">
+              <div>
+                <p class="text-[10px] font-bold opacity-40 uppercase mb-1">Monthly Yield</p>
+                <p id="dash-inc" class="text-lg font-bold text-green-400"></p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold opacity-40 uppercase mb-1">Consumption</p>
+                <p id="dash-exp" class="text-lg font-bold text-red-400"></p>
+              </div>
+            </div>
+          </div>
+          <div class="absolute -right-10 -top-10 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px]"></div>
+          <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-purple-500/10 rounded-full blur-[80px]"></div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] p-8 premium-shadow border border-slate-50 flex flex-col justify-between">
+          <h3 class="font-bold text-slate-800">Expense Limit</h3>
+          <div class="space-y-4">
+            <div class="flex justify-between items-end">
+              <span id="limit-label" class="text-xs font-bold text-slate-400">Usage Ratio</span>
+              <span id="limit-percent" class="text-2xl font-black text-slate-900">0%</span>
+            </div>
+            <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden inset-shadow">
+              <div id="limit-bar" class="h-full bg-slate-900 transition-all duration-1000 ease-out" style="width: 0%"></div>
+            </div>
+          </div>
+          <p class="text-[10px] font-medium text-slate-400 leading-relaxed italic">"Wealth is the ability to fully experience life."</p>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 xl:grid-cols-2 gap-10">
+        <div class="space-y-6">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-extrabold tracking-tight">Recent Ledger</h3>
+            <button onclick="refreshData()" class="text-xs font-bold text-blue-600">Fetch Update</button>
+          </div>
+          <div id="tx-list" class="space-y-4"></div>
+          <div id="empty-msg" class="hidden text-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
+            <i data-lucide="layers-3" class="w-10 h-10 mx-auto text-slate-200 mb-3"></i>
+            <p class="text-sm font-bold text-slate-300">No entries recorded for this period.</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] p-8 md:p-10 premium-shadow border border-slate-50 h-fit sticky top-10">
+          <h3 class="text-xl font-extrabold tracking-tight mb-8">New Entry</h3>
+          
+          <form id="tx-form" class="space-y-6">
+            <div class="flex p-1.5 bg-slate-50 rounded-[1.5rem] inset-shadow">
+              <button type="button" id="type-inc" class="btn-haptic flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all bg-white shadow-sm text-slate-900">Credit</button>
+              <button type="button" id="type-exp" class="btn-haptic flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all text-slate-400">Debit</button>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Memo / Description</label>
+              <input id="inp-desc" type="text" placeholder="Transaction details..." class="w-full bg-slate-50 border-transparent rounded-2xl px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all" required>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-1">
+                <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Amount</label>
+                <div class="relative">
+                  <span class="absolute left-6 top-1/2 -translate-y-1/2 font-black text-slate-300">Rp</span>
+                  <input id="inp-amt" type="number" placeholder="0" class="w-full bg-slate-50 border-transparent rounded-2xl pl-14 pr-6 py-4 text-lg font-black outline-none focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all" required>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Category</label>
+                <select id="inp-cat" class="w-full bg-slate-50 border-transparent rounded-2xl px-6 py-4 text-sm font-bold outline-none appearance-none cursor-pointer">
+                  <option value="Gaji">💰 Revenue / Gaji</option>
+                  <option value="Makanan">🍚 F&B / Makanan</option>
+                  <option value="Transportasi">🚌 Logistics / Transport</option>
+                  <option value="Belanja">🛒 Shopping / Belanja</option>
+                  <option value="Tagihan">💡 Fixed Bills / Tagihan</option>
+                  <option value="Lainnya">📌 Miscellaneous</option>
+                </select>
+              </div>
+            </div>
+
+            <input id="inp-date" type="date" class="w-full bg-slate-50 border-transparent rounded-2xl px-6 py-4 text-xs font-bold outline-none cursor-pointer">
+            
+            <button type="submit" id="btn-save" class="btn-haptic w-full py-5 rounded-[1.8rem] bg-slate-900 text-white font-black text-sm tracking-widest shadow-2xl shadow-slate-300 transition-all">POST TRANSACTION</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="md:hidden fixed bottom-0 left-0 right-0 glass border-t border-slate-100 px-8 py-6 flex justify-around items-center z-[100]">
+    <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="flex flex-col items-center gap-1">
+      <i data-lucide="home" class="w-5 h-5 text-slate-900"></i>
+      <span class="text-[9px] font-bold uppercase tracking-tighter">Home</span>
+    </button>
+    <button onclick="document.getElementById('tx-form').scrollIntoView({behavior:'smooth', block:'center'})" class="flex flex-col items-center gap-1">
+      <div class="p-3 bg-slate-900 rounded-2xl -mt-12 shadow-xl shadow-slate-200">
+        <i data-lucide="plus" class="w-6 h-6 text-white"></i>
+      </div>
+      <span class="text-[9px] font-bold uppercase tracking-tighter mt-1">Add</span>
+    </button>
+    <button onclick="refreshData()" class="flex flex-col items-center gap-1 text-slate-400">
+      <i data-lucide="refresh-ccw" class="w-5 h-5"></i>
+      <span class="text-[9px] font-bold uppercase tracking-tighter">Sync</span>
+    </button>
   </div>
 
   <script>
-    // --- GANTI URL APPS SCRIPT KAMU ---
+    // --- API CONFIGURATION ---
     const API_URL = "https://script.google.com/macros/s/AKfycbz1jytLqA8D0wue8IUAUkirv-8A_8FfB08QtJThE7H5DN6nl22JTayXlPzRRbCc4uzfRQ/exec"; 
 
     let allData = [];
@@ -127,19 +230,22 @@
     let currentUser = '';
     let currentMonth = new Date().toISOString().slice(0, 7);
 
+    // Initializations
     document.getElementById('filter-month').value = currentMonth;
     document.getElementById('inp-date').value = new Date().toISOString().slice(0, 10);
+    updateMonthDisplay();
 
-    // Login
+    // Login logic
     document.getElementById('login-form').onsubmit = (e) => {
       e.preventDefault();
       currentUser = document.getElementById('login-name').value;
+      document.getElementById('user-display').textContent = currentUser;
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('main-app').classList.remove('hidden');
       refreshData();
     };
 
-    // Toggle Type
+    // Toggle Type logic
     const tInc = document.getElementById('type-inc');
     const tExp = document.getElementById('type-exp');
     tInc.onclick = () => setType('income');
@@ -147,19 +253,19 @@
 
     function setType(t) {
       currentType = t;
-      tInc.className = t === 'income' ? "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all bg-white shadow-sm text-slate-900" : "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all text-slate-400";
-      tExp.className = t === 'expense' ? "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all bg-white shadow-sm text-red-600" : "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all text-slate-400";
+      tInc.className = t === 'income' ? "btn-haptic flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all bg-white shadow-sm text-slate-900" : "btn-haptic flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all text-slate-400";
+      tExp.className = t === 'expense' ? "btn-haptic flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all bg-white shadow-sm text-red-600" : "btn-haptic flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all text-slate-400";
     }
 
     async function refreshData() {
       if (!API_URL.startsWith("http")) return;
-      document.getElementById('mini-loader').classList.add('active');
+      document.getElementById('sync-status').querySelector('span').textContent = 'Updating...';
       try {
         const res = await fetch(API_URL);
         allData = await res.json();
         updateUI();
-      } catch (e) { showToast("Gagal ambil data ⚠️", false); }
-      document.getElementById('mini-loader').classList.remove('active');
+      } catch (e) { showToast("Sync Failure ⚠️", false); }
+      document.getElementById('sync-status').querySelector('span').textContent = 'Live Sync';
     }
 
     document.getElementById('tx-form').onsubmit = async (e) => {
@@ -173,18 +279,18 @@
         user: currentUser
       };
 
-      // Optimistic UI: Tambah ke list lokal duluan biar keliatan cepet
+      // Premium Feel: Optimistic UI
       allData.unshift(payload);
       updateUI();
-      showToast("Tersimpan secara lokal...");
+      showToast("Transaction logged locally...");
 
       try {
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        showToast("Berhasil sinkron ke Cloud! ✅");
+        showToast("Cloud Database Updated ✅");
         e.target.reset();
         document.getElementById('inp-date').value = new Date().toISOString().slice(0, 10);
         setTimeout(refreshData, 2000);
-      } catch (e) { showToast("Gagal Sinkron Cloud", false); }
+      } catch (e) { showToast("Network Error", false); }
     };
 
     function updateUI() {
@@ -192,31 +298,50 @@
       const inc = filtered.filter(d => d.type === 'income').reduce((s,d) => s + Number(d.amount), 0);
       const exp = filtered.filter(d => d.type === 'expense').reduce((s,d) => s + Number(d.amount), 0);
       
+      // Counter animation logic (Simplified for performance)
       document.getElementById('dash-balance').textContent = `Rp ${(inc - exp).toLocaleString('id-ID')}`;
-      document.getElementById('dash-inc').textContent = `Rp ${inc.toLocaleString('id-ID')}`;
-      document.getElementById('dash-exp').textContent = `Rp ${exp.toLocaleString('id-ID')}`;
+      document.getElementById('dash-inc').textContent = `+ Rp ${inc.toLocaleString('id-ID')}`;
+      document.getElementById('dash-exp').textContent = `- Rp ${exp.toLocaleString('id-ID')}`;
+
+      // Limit Bar Logic
+      const ratio = inc > 0 ? Math.min((exp / inc) * 100, 100) : (exp > 0 ? 100 : 0);
+      document.getElementById('limit-bar').style.width = ratio + '%';
+      document.getElementById('limit-percent').textContent = Math.round(ratio) + '%';
+      document.getElementById('limit-bar').className = `h-full transition-all duration-1000 ease-out ${ratio > 80 ? 'bg-red-500' : 'bg-slate-900'}`;
 
       const list = document.getElementById('tx-list');
       list.innerHTML = '';
       
-      filtered.slice(0, 20).forEach(item => {
-        const card = document.createElement('div');
-        card.className = "bg-white p-4 rounded-p flex justify-between items-center card-shadow border border-slate-50 transition-all active:scale-95";
-        card.innerHTML = `
-          <div class="flex items-center gap-4">
-            <div class="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center text-lg">${getEmoji(item.category)}</div>
-            <div>
-              <p class="text-sm font-bold">${item.description}</p>
-              <p class="text-[9px] font-black text-slate-300 uppercase">${item.date}</p>
+      if (filtered.length === 0) {
+        document.getElementById('empty-msg').classList.remove('hidden');
+      } else {
+        document.getElementById('empty-msg').classList.add('hidden');
+        filtered.slice(0, 15).forEach((item, idx) => {
+          const card = document.createElement('div');
+          card.className = "animate-slide-up bg-white p-5 rounded-[1.8rem] flex justify-between items-center premium-shadow border border-slate-50 transition-all hover:scale-[1.02] cursor-pointer";
+          card.style.animationDelay = `${idx * 0.05}s`;
+          card.innerHTML = `
+            <div class="flex items-center gap-5">
+              <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xl shadow-inner">${getEmoji(item.category)}</div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">${item.description}</p>
+                <p class="text-[10px] font-black text-slate-300 uppercase tracking-tighter">${item.date} • ${item.category}</p>
+              </div>
             </div>
-          </div>
-          <p class="text-sm font-black ${item.type === 'income' ? 'text-green-600' : 'text-red-500'}">
-            ${item.type === 'income' ? '+' : '-'} ${Number(item.amount).toLocaleString('id-ID')}
-          </p>
-        `;
-        list.appendChild(card);
-      });
+            <p class="text-sm font-black ${item.type === 'income' ? 'text-green-600' : 'text-red-500'}">
+              ${item.type === 'income' ? '+' : '-'} ${Number(item.amount).toLocaleString('id-ID')}
+            </p>
+          `;
+          list.appendChild(card);
+        });
+      }
       lucide.createIcons();
+    }
+
+    function updateMonthDisplay() {
+      const date = new Date(currentMonth + "-01");
+      const options = { month: 'long', year: 'numeric' };
+      document.getElementById('month-display').textContent = date.toLocaleDateString('id-ID', options);
     }
 
     function getEmoji(cat) {
@@ -226,15 +351,37 @@
 
     function showToast(msg, ok = true) {
       const t = document.getElementById('toast');
-      t.innerHTML = `<div class="px-5 py-3 rounded-full shadow-2xl text-white font-bold text-[10px] uppercase tracking-widest ${ok ? 'bg-slate-900' : 'bg-red-500'}">${msg}</div>`;
+      t.innerHTML = `<div class="glass px-6 py-3 rounded-full shadow-2xl text-slate-900 font-bold text-[10px] uppercase tracking-widest flex items-center gap-3">
+        <div class="w-2 h-2 rounded-full ${ok ? 'bg-green-500' : 'bg-red-500'}"></div> ${msg}
+      </div>`;
       t.classList.remove('hidden');
       setTimeout(() => t.classList.add('hidden'), 3000);
     }
 
     document.getElementById('filter-month').onchange = (e) => {
       currentMonth = e.target.value;
+      updateMonthDisplay();
       updateUI();
     };
+
+    document.getElementById('prev-month').onclick = () => {
+      let d = new Date(currentMonth + "-01");
+      d.setMonth(d.getMonth() - 1);
+      currentMonth = d.toISOString().slice(0, 7);
+      document.getElementById('filter-month').value = currentMonth;
+      updateMonthDisplay();
+      updateUI();
+    };
+
+    document.getElementById('next-month').onclick = () => {
+      let d = new Date(currentMonth + "-01");
+      d.setMonth(d.getMonth() + 1);
+      currentMonth = d.toISOString().slice(0, 7);
+      document.getElementById('filter-month').value = currentMonth;
+      updateMonthDisplay();
+      updateUI();
+    };
+
     lucide.createIcons();
   </script>
 </body>
