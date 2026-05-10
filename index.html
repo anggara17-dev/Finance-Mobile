@@ -1,125 +1,125 @@
 <!doctype html>
-<html lang="id" class="h-full">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Finance Mobile - Dashboard</title>
+  <title>CuanTracker v3</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-    .custom-scroll::-webkit-scrollbar { width: 5px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-    .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+    body { background-color: #fcfcfd; }
+    .card-shadow { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    /* Pinterest style rounded */
+    .rounded-p { border-radius: 24px; }
+    /* Loading kecil saja di pojok, jangan nutup layar */
+    #mini-loader { transition: opacity 0.3s; opacity: 0; }
+    #mini-loader.active { opacity: 1; }
   </style>
 </head>
-<body class="h-full bg-[#f8fafc] text-slate-800">
+<body class="h-full text-slate-800">
 
-  <div id="loader" class="fixed inset-0 hidden z-[100] flex items-center justify-center bg-white/70 backdrop-blur-sm">
-    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-green-800"></div>
-  </div>
-  <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[101] w-full max-w-xs hidden"></div>
+  <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-max hidden animate-bounce"></div>
 
-  <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-green-800 text-white">
-    <div class="w-full max-w-sm text-center">
-      <h1 class="text-3xl font-black mb-8 italic">CuanTracker.</h1>
-      <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl text-slate-800">
-        <form id="login-form" class="space-y-4">
-          <input id="login-name" type="text" placeholder="Username" class="w-full bg-slate-100 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-green-600 font-bold" required>
-          <button type="submit" class="w-full py-4 rounded-2xl bg-green-800 text-white font-bold shadow-lg shadow-green-900/20 active:scale-95 transition-all">Buka Dashboard</button>
-        </form>
+  <div id="login-screen" class="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-white">
+    <div class="w-full max-w-xs text-center">
+      <div class="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i data-lucide="leaf" class="text-green-600 w-8 h-8"></i>
       </div>
+      <h1 class="text-2xl font-extrabold tracking-tighter mb-8">CuanTracker.</h1>
+      <form id="login-form" class="space-y-3">
+        <input id="login-name" type="text" placeholder="Username" class="w-full bg-slate-100 rounded-2xl px-5 py-4 outline-none focus:bg-white focus:ring-2 focus:ring-green-600 transition-all text-sm font-semibold" required>
+        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold active:scale-95 transition-all text-sm">Masuk Dashboard</button>
+      </form>
     </div>
   </div>
 
-  <div id="main-app" class="hidden h-screen flex flex-col md:flex-row overflow-hidden">
+  <div id="main-app" class="hidden max-w-5xl mx-auto flex flex-col md:flex-row h-screen overflow-hidden">
     
-    <div class="flex-1 h-full overflow-y-auto custom-scroll p-4 md:p-8 space-y-8">
+    <div class="flex-1 overflow-y-auto no-scrollbar p-5 md:p-10 space-y-8">
       <header class="flex justify-between items-center">
         <div>
-          <h2 class="text-2xl font-black text-slate-900">Dashboard</h2>
-          <p id="user-display" class="text-sm text-slate-400 font-medium"></p>
+          <h2 class="text-xl font-extrabold tracking-tight">Ringkasan</h2>
+          <div id="mini-loader" class="flex items-center gap-2 mt-1">
+             <div class="w-2 h-2 bg-green-600 rounded-full animate-ping"></div>
+             <span class="text-[10px] font-bold text-slate-400 uppercase">Syncing...</span>
+          </div>
         </div>
-        <button onclick="refreshData()" class="p-3 bg-white shadow-sm border rounded-2xl hover:bg-slate-50 transition-all">
-          <i data-lucide="refresh-cw" class="w-5 h-5 text-slate-600"></i>
-        </button>
+        <button onclick="refreshData()" class="p-2 bg-white rounded-full border border-slate-100 shadow-sm"><i data-lucide="rotate-cw" class="w-4 h-4 text-slate-500"></i></button>
       </header>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-green-800 p-6 rounded-[2rem] text-white shadow-xl shadow-green-900/10">
-          <p class="text-[10px] font-bold uppercase opacity-60 mb-1">Total Saldo</p>
-          <h3 id="dash-balance" class="text-2xl font-black">Rp 0</h3>
+      <div class="grid grid-cols-1 gap-4">
+        <div class="bg-slate-900 rounded-p p-8 text-white relative overflow-hidden">
+          <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Saldo Total</p>
+          <h3 id="dash-balance" class="text-3xl font-black mt-1 tracking-tight">Rp 0</h3>
+          <i data-lucide="wallet" class="absolute right-[-10px] bottom-[-10px] w-32 h-32 opacity-10 rotate-12"></i>
         </div>
-        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-          <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Pemasukan</p>
-          <h3 id="dash-inc" class="text-2xl font-black text-green-700">Rp 0</h3>
-        </div>
-        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-          <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Pengeluaran</p>
-          <h3 id="dash-exp" class="text-2xl font-black text-red-600">Rp 0</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-white rounded-p p-6 card-shadow border border-slate-50">
+            <p class="text-[9px] font-bold text-slate-400 uppercase">Pemasukan</p>
+            <h4 id="dash-inc" class="text-lg font-bold text-green-600">Rp 0</h4>
+          </div>
+          <div class="bg-white rounded-p p-6 card-shadow border border-slate-50">
+            <p class="text-[9px] font-bold text-slate-400 uppercase">Pengeluaran</p>
+            <h4 id="dash-exp" class="text-lg font-bold text-red-500">Rp 0</h4>
+          </div>
         </div>
       </div>
 
       <div class="space-y-4">
         <div class="flex justify-between items-center">
-          <h3 class="font-bold text-lg">Riwayat Transaksi</h3>
-          <input id="filter-month" type="month" class="bg-white px-4 py-2 border rounded-xl text-xs font-bold outline-none">
+          <h3 class="font-bold">Aktivitas</h3>
+          <input id="filter-month" type="month" class="bg-transparent border-0 text-xs font-bold outline-none text-slate-500">
         </div>
-        <div id="tx-list" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
-        <div id="empty-msg" class="hidden text-center py-20 opacity-20"><i data-lucide="folder-open" class="w-12 h-12 mx-auto"></i></div>
+        <div id="tx-list" class="space-y-3"></div>
       </div>
     </div>
 
-    <div class="w-full md:w-[400px] lg:w-[450px] bg-white border-l border-slate-100 p-6 md:p-8 flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.02)]">
+    <div class="w-full md:w-96 bg-white border-l border-slate-100 p-5 md:p-10 shadow-2xl md:shadow-none relative z-10">
       <div class="mb-8">
-        <h3 class="text-xl font-black tracking-tight">Catat Baru</h3>
-        <p class="text-xs text-slate-400 mt-1">Masukkan transaksi harianmu di sini.</p>
+        <h3 class="text-lg font-bold">Catat Baru</h3>
+        <p class="text-xs text-slate-400">Gunakan (-) untuk pengeluaran otomatis.</p>
       </div>
 
-      <div class="flex p-1.5 bg-slate-100 rounded-2xl mb-8">
-        <button type="button" id="type-inc" class="flex-1 py-3 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-green-800">Pemasukan</button>
-        <button type="button" id="type-exp" class="flex-1 py-3 rounded-xl text-xs font-bold transition-all text-slate-500">Pengeluaran</button>
-      </div>
-
-      <form id="tx-form" class="space-y-6 flex-1">
-        <div class="space-y-2">
-          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Keterangan</label>
-          <input id="inp-desc" type="text" placeholder="Beli apa?" class="w-full bg-slate-50 rounded-2xl px-5 py-4 outline-none border-0 focus:ring-2 focus:ring-green-600 transition-all font-semibold" required>
+      <form id="tx-form" class="space-y-5">
+        <div class="flex bg-slate-100 p-1 rounded-2xl">
+          <button type="button" id="type-inc" class="flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all bg-white shadow-sm text-slate-900">Pemasukan</button>
+          <button type="button" id="type-exp" class="flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all text-slate-400">Pengeluaran</button>
         </div>
 
-        <div class="space-y-2">
-          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nominal (Rp)</label>
-          <input id="inp-amt" type="number" placeholder="0" class="w-full bg-slate-50 rounded-2xl px-5 py-4 outline-none border-0 focus:ring-2 focus:ring-green-600 text-xl font-black" required>
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Keterangan</label>
+          <input id="inp-desc" type="text" placeholder="Makan ayam geprek" class="w-full bg-slate-50 border-0 rounded-2xl px-5 py-4 text-sm font-semibold outline-none focus:ring-2 focus:ring-green-600 transition-all" required>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
-            <select id="inp-cat" class="w-full bg-slate-50 rounded-2xl px-4 py-4 outline-none border-0 text-sm font-bold appearance-none">
+        <div class="grid grid-cols-1 gap-4">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nominal</label>
+            <input id="inp-amt" type="number" placeholder="0" class="w-full bg-slate-50 border-0 rounded-2xl px-5 py-4 text-lg font-black outline-none focus:ring-2 focus:ring-green-600 transition-all" required>
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
+            <select id="inp-cat" class="w-full bg-slate-50 border-0 rounded-2xl px-4 py-4 text-sm font-bold outline-none appearance-none">
               <option value="Makanan">🍚 Makanan</option>
               <option value="Gaji">💰 Gaji</option>
-              <option value="Transportasi">🚌 Transport</option>
               <option value="Belanja">🛒 Belanja</option>
               <option value="Tagihan">💡 Tagihan</option>
               <option value="Lainnya">📌 Lainnya</option>
             </select>
           </div>
-          <div class="space-y-2">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tanggal</label>
-            <input id="inp-date" type="date" class="w-full bg-slate-50 rounded-2xl px-4 py-4 outline-none border-0 text-sm font-bold">
-          </div>
         </div>
 
-        <button type="submit" id="btn-save" class="w-full py-5 rounded-[2rem] bg-green-800 text-white font-bold shadow-xl shadow-green-900/20 active:scale-95 transition-all mt-4">Simpan Transaksi</button>
+        <input id="inp-date" type="date" class="w-full bg-slate-50 border-0 rounded-2xl px-4 py-4 text-xs font-bold outline-none">
+        
+        <button type="submit" id="btn-save" class="w-full py-5 rounded-p bg-green-600 text-white font-black text-sm shadow-lg shadow-green-900/20 active:scale-95 transition-all">Simpan</button>
       </form>
-      
-      <p class="text-center text-[10px] text-slate-300 font-bold uppercase tracking-widest mt-8">CuanTracker v2.0</p>
     </div>
   </div>
 
   <script>
-    // --- GANTI DENGAN URL APPS SCRIPT KAMU ---
+    // --- GANTI URL APPS SCRIPT KAMU ---
     const API_URL = "URL_APPS_SCRIPT_KAMU"; 
 
     let allData = [];
@@ -134,7 +134,6 @@
     document.getElementById('login-form').onsubmit = (e) => {
       e.preventDefault();
       currentUser = document.getElementById('login-name').value;
-      document.getElementById('user-display').textContent = `Welcome back, ${currentUser}`;
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('main-app').classList.remove('hidden');
       refreshData();
@@ -148,27 +147,23 @@
 
     function setType(t) {
       currentType = t;
-      tInc.className = t === 'income' ? "flex-1 py-3 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-green-800" : "flex-1 py-3 rounded-xl text-xs font-bold transition-all text-slate-400";
-      tExp.className = t === 'expense' ? "flex-1 py-3 rounded-xl text-xs font-bold transition-all bg-white shadow-sm text-red-600" : "flex-1 py-3 rounded-xl text-xs font-bold transition-all text-slate-400";
+      tInc.className = t === 'income' ? "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all bg-white shadow-sm text-slate-900" : "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all text-slate-400";
+      tExp.className = t === 'expense' ? "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all bg-white shadow-sm text-red-600" : "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase transition-all text-slate-400";
     }
 
     async function refreshData() {
       if (!API_URL.startsWith("http")) return;
-      showLoader(true);
+      document.getElementById('mini-loader').classList.add('active');
       try {
-        const response = await fetch(API_URL);
-        allData = await response.json();
+        const res = await fetch(API_URL);
+        allData = await res.json();
         updateUI();
-      } catch (e) { showToast("Gagal Sinkron ⚠️", false); }
-      showLoader(false);
+      } catch (e) { showToast("Gagal ambil data ⚠️", false); }
+      document.getElementById('mini-loader').classList.remove('active');
     }
 
     document.getElementById('tx-form').onsubmit = async (e) => {
       e.preventDefault();
-      const saveBtn = document.getElementById('btn-save');
-      saveBtn.disabled = true;
-      showLoader(true);
-
       const payload = {
         description: document.getElementById('inp-desc').value,
         amount: Number(document.getElementById('inp-amt').value),
@@ -178,53 +173,49 @@
         user: currentUser
       };
 
+      // Optimistic UI: Tambah ke list lokal duluan biar keliatan cepet
+      allData.unshift(payload);
+      updateUI();
+      showToast("Tersimpan secara lokal...");
+
       try {
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        showToast("Tersimpan! ✅");
+        showToast("Berhasil sinkron ke Cloud! ✅");
         e.target.reset();
         document.getElementById('inp-date').value = new Date().toISOString().slice(0, 10);
         setTimeout(refreshData, 2000);
-      } catch (e) { showToast("Gagal simpan", false); }
-      
-      saveBtn.disabled = false;
-      showLoader(false);
+      } catch (e) { showToast("Gagal Sinkron Cloud", false); }
     };
 
     function updateUI() {
-      const filtered = Array.isArray(allData) ? allData.filter(d => (d.date || '').startsWith(currentMonth)) : [];
-      const inc = filtered.filter(d => d.type === 'income').reduce((s,d) => s + Number(d.amount || 0), 0);
-      const exp = filtered.filter(d => d.type === 'expense').reduce((s,d) => s + Number(d.amount || 0), 0);
+      const filtered = allData.filter(d => (d.date || '').startsWith(currentMonth));
+      const inc = filtered.filter(d => d.type === 'income').reduce((s,d) => s + Number(d.amount), 0);
+      const exp = filtered.filter(d => d.type === 'expense').reduce((s,d) => s + Number(d.amount), 0);
       
       document.getElementById('dash-balance').textContent = `Rp ${(inc - exp).toLocaleString('id-ID')}`;
       document.getElementById('dash-inc').textContent = `Rp ${inc.toLocaleString('id-ID')}`;
       document.getElementById('dash-exp').textContent = `Rp ${exp.toLocaleString('id-ID')}`;
 
       const list = document.getElementById('tx-list');
-      const empty = document.getElementById('empty-msg');
       list.innerHTML = '';
       
-      if (filtered.length === 0) {
-        empty.classList.remove('hidden');
-      } else {
-        empty.classList.add('hidden');
-        filtered.sort((a,b) => b.date.localeCompare(a.date)).forEach(item => {
-          const div = document.createElement('div');
-          div.className = "bg-white p-5 rounded-[2rem] flex items-center justify-between border border-slate-50 shadow-sm hover:shadow-md transition-all";
-          div.innerHTML = `
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-xl">${getEmoji(item.category)}</div>
-              <div>
-                <p class="text-sm font-bold text-slate-800">${item.description}</p>
-                <p class="text-[10px] text-slate-400 font-bold uppercase">${item.date}</p>
-              </div>
+      filtered.slice(0, 20).forEach(item => {
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-p flex justify-between items-center card-shadow border border-slate-50 transition-all active:scale-95";
+        card.innerHTML = `
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center text-lg">${getEmoji(item.category)}</div>
+            <div>
+              <p class="text-sm font-bold">${item.description}</p>
+              <p class="text-[9px] font-black text-slate-300 uppercase">${item.date}</p>
             </div>
-            <p class="text-sm font-black ${item.type === 'income' ? 'text-green-700' : 'text-red-600'}">
-              ${item.type === 'income' ? '+' : '-'} ${Number(item.amount).toLocaleString('id-ID')}
-            </p>
-          `;
-          list.appendChild(div);
-        });
-      }
+          </div>
+          <p class="text-sm font-black ${item.type === 'income' ? 'text-green-600' : 'text-red-500'}">
+            ${item.type === 'income' ? '+' : '-'} ${Number(item.amount).toLocaleString('id-ID')}
+          </p>
+        `;
+        list.appendChild(card);
+      });
       lucide.createIcons();
     }
 
@@ -235,18 +226,15 @@
 
     function showToast(msg, ok = true) {
       const t = document.getElementById('toast');
-      t.innerHTML = `<div class="px-6 py-3 rounded-2xl shadow-2xl text-white font-bold text-sm ${ok ? 'bg-green-800' : 'bg-red-500'} animate-bounce">${msg}</div>`;
+      t.innerHTML = `<div class="px-5 py-3 rounded-full shadow-2xl text-white font-bold text-[10px] uppercase tracking-widest ${ok ? 'bg-slate-900' : 'bg-red-500'}">${msg}</div>`;
       t.classList.remove('hidden');
       setTimeout(() => t.classList.add('hidden'), 3000);
     }
-
-    function showLoader(v) { document.getElementById('loader').classList.toggle('hidden', !v); }
 
     document.getElementById('filter-month').onchange = (e) => {
       currentMonth = e.target.value;
       updateUI();
     };
-
     lucide.createIcons();
   </script>
 </body>
