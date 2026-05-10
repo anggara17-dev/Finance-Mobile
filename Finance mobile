@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catatan Keuangan Harian</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .toast { animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s; }
+    @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full w-full overflow-auto" style="background-color: #f0fdf4;">
+   <!-- Toast -->
+   <div id="toast" class="fixed top-4 right-4 z-50 hidden"></div><!-- Login Screen -->
+   <div id="login-screen" class="h-full w-full flex items-center justify-center" style="background: linear-gradient(135deg, #166534 0%, #15803d 100%);">
+    <div class="w-full max-w-sm mx-4">
+     <div class="text-center mb-8"><i data-lucide="wallet" style="width: 64px; height: 64px; color: #f0fdf4; margin: 0 auto; display: block;"></i>
+      <h1 class="text-3xl font-bold mt-4" style="color: #f0fdf4;">Catatan Keuangan</h1>
+      <p class="text-sm mt-1 opacity-90" style="color: #f0fdf4;">Kelola keuangan harianmu dengan mudah</p>
+     </div>
+     <div class="rounded-2xl p-6 shadow-xl" style="background-color: #ffffff;">
+      <form id="login-form" class="space-y-4">
+       <div><label for="login-name" class="block text-sm font-medium mb-2" style="color: #166534;">Nama Lengkap</label> <input id="login-name" type="text" placeholder="Masukkan nama kamu" class="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2" style="border-color: #d1d5db; --tw-ring-color: #166534;" required>
+       </div><button type="submit" class="w-full py-2.5 rounded-lg text-sm font-semibold transition" style="background-color: #166534; color: #f0fdf4;">Mulai Mencatat</button>
+      </form>
+     </div>
+    </div>
+   </div><!-- Main App (Hidden Initially) -->
+   <div id="main-app" class="hidden h-full flex flex-col"><!-- Header with Logout -->
+    <header class="sticky top-0 z-40" style="background-color: #166534;">
+     <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div>
+       <h1 id="app-title" class="text-lg font-bold" style="color: #f0fdf4;">Catatan Keuangan Harian</h1>
+       <p id="user-name" class="text-xs opacity-80" style="color: #f0fdf4;"></p>
+      </div><button id="logout-btn" class="px-3 py-1.5 rounded-lg text-xs font-medium transition" style="background-color: rgba(255,255,255,0.2); color: #f0fdf4;">Logout</button>
+     </div>
+    </header><!-- Main Content -->
+    <main class="flex-1 overflow-auto">
+     <div class="max-w-5xl mx-auto px-4 py-6"><!-- Dashboard Section -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"><!-- Summary Cards -->
+       <div class="rounded-2xl p-5 shadow-sm" style="background-color: #ffffff;">
+        <p class="text-xs opacity-60 mb-1" style="color: #166534;">Pemasukan</p>
+        <p id="dashboard-income" class="text-2xl font-bold" style="color: #166534;">Rp 0</p>
+       </div>
+       <div class="rounded-2xl p-5 shadow-sm" style="background-color: #ffffff;">
+        <p class="text-xs opacity-60 mb-1" style="color: #166534;">Pengeluaran</p>
+        <p id="dashboard-expense" class="text-2xl font-bold" style="color: #dc2626;">Rp 0</p>
+       </div>
+       <div class="rounded-2xl p-5 shadow-sm" style="background-color: #ffffff;">
+        <p class="text-xs opacity-60 mb-1" style="color: #166534;">Saldo</p>
+        <p id="dashboard-balance" class="text-2xl font-bold" style="color: #166534;">Rp 0</p>
+       </div>
+      </section><!-- Filter & Tabs Section -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-6"><!-- Left: Add Transaction -->
+       <div class="lg:col-span-1">
+        <div class="rounded-2xl p-5 shadow-sm" style="background-color: #ffffff;">
+         <h2 class="font-semibold mb-4" style="color: #166534;">Tambah Transaksi</h2>
+         <form id="tx-form" class="space-y-3">
+          <div class="flex gap-2"><button type="button" id="btn-income" class="flex-1 py-2 rounded-lg text-sm font-medium border-2 transition" style="border-color: #166534; background-color: #166534; color: #f0fdf4;">Pemasukan</button> <button type="button" id="btn-expense" class="flex-1 py-2 rounded-lg text-sm font-medium border-2 transition" style="border-color: #166534; color: #166534; background-color: transparent;">Pengeluaran</button>
+          </div><input id="inp-desc" type="text" placeholder="Keterangan" class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2" style="border-color: #d1d5db;" required> <input id="inp-amount" type="number" placeholder="Jumlah" min="1" class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2" style="border-color: #d1d5db;" required> <select id="inp-category" class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2" style="border-color: #d1d5db;"> <option value="Makanan">🍚 Makanan</option> <option value="Transportasi">🚌 Transportasi</option> <option value="Belanja">🛒 Belanja</option> <option value="Pendidikan">📚 Pendidikan</option> <option value="Kesehatan">💊 Kesehatan</option> <option value="Hiburan">🎬 Hiburan</option> <option value="Tagihan">💡 Tagihan</option> <option value="Gaji">💰 Gaji</option> <option value="Lainnya">📌 Lainnya</option> </select> <input id="inp-date" type="date" class="w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2" style="border-color: #d1d5db;"> <button id="btn-submit" type="submit" class="w-full py-2.5 rounded-lg text-sm font-semibold transition" style="background-color: #166534; color: #f0fdf4;"> <span id="btn-submit-text">+ Simpan</span> </button>
+         </form>
+        </div>
+       </div><!-- Right: Dashboard & Transaction List -->
+       <div class="lg:col-span-2 space-y-6"><!-- Month Filter & Charts -->
+        <div class="rounded-2xl p-5 shadow-sm" style="background-color: #ffffff;">
+         <h2 class="font-semibold mb-4" style="color: #166534;">Dashboard Bulanan</h2>
+         <div class="flex items-center gap-3 mb-5"><button id="prev-month" class="p-1.5 rounded-lg hover:bg-gray-100"><i data-lucide="chevron-left" style="width: 18px; height: 18px;"></i></button> <input id="month-filter" type="month" class="flex-1 border rounded-lg px-3 py-2 text-sm" style="border-color: #d1d5db;"> <button id="next-month" class="p-1.5 rounded-lg hover:bg-gray-100"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></button>
+         </div><!-- Mini Chart -->
+         <div class="space-y-3">
+          <div>
+           <div class="flex justify-between mb-1"><span class="text-xs font-medium">Pemasukan</span> <span class="text-xs font-bold" style="color: #166534;" id="chart-income">Rp 0</span>
+           </div>
+           <div class="h-2 rounded-full" style="background-color: #e5e7eb;">
+            <div id="income-bar" class="h-full rounded-full" style="background-color: #166534; width: 0%;"></div>
+           </div>
+          </div>
+          <div>
+           <div class="flex justify-between mb-1"><span class="text-xs font-medium">Pengeluaran</span> <span class="text-xs font-bold" style="color: #dc2626;" id="chart-expense">Rp 0</span>
+           </div>
+           <div class="h-2 rounded-full" style="background-color: #e5e7eb;">
+            <div id="expense-bar" class="h-full rounded-full" style="background-color: #dc2626; width: 0%;"></div>
+           </div>
+          </div>
+         </div>
+        </div><!-- Transaction List -->
+        <div class="rounded-2xl p-5 shadow-sm" style="background-color: #ffffff;">
+         <h2 class="font-semibold mb-3" style="color: #166534;">Riwayat Transaksi</h2>
+         <div id="tx-list" class="space-y-2"></div>
+         <p id="empty-msg" class="text-center text-sm py-8 opacity-60" style="color: #166534;">Belum ada transaksi. Mulai catat pengeluaranmu! ✨</p>
+        </div>
+       </div>
+      </section>
+     </div>
+    </main>
+   </div><!-- Delete Confirmation Modal -->
+   <div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background: rgba(0,0,0,0.4);">
+    <div class="rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl" style="background-color: #ffffff;">
+     <p class="font-semibold mb-2" style="color: #166534;">Hapus transaksi ini?</p>
+     <p class="text-sm mb-4 opacity-70">Tindakan ini tidak bisa dibatalkan.</p>
+     <div class="flex gap-2"><button id="del-cancel" class="flex-1 py-2 rounded-lg text-sm border" style="border-color: #d1d5db;">Batal</button> <button id="del-confirm" class="flex-1 py-2 rounded-lg text-sm font-semibold" style="background-color: #dc2626; color: white;">Hapus</button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+  const defaultConfig = {
+    app_title: 'Catatan Keuangan Harian',
+    currency_symbol: 'Rp',
+    background_color: '#f0fdf4',
+    primary_color: '#166534',
+    surface_color: '#ffffff',
+    text_color: '#166534',
+    accent_color: '#dc2626',
+    font_family: 'Plus Jakarta Sans',
+    font_size: 14
+  };
+
+  let allData = [];
+  let txType = 'income';
+  let deleteTarget = null;
+  let currentUser = null;
+  let currentMonth = new Date().toISOString().slice(0, 7);
+
+  // Element SDK
+  window.elementSdk.init({
+    defaultConfig,
+    onConfigChange: async (config) => {
+      const c = { ...defaultConfig, ...config };
+      document.getElementById('app').style.backgroundColor = c.background_color;
+      document.querySelector('header').style.backgroundColor = c.primary_color;
+      document.getElementById('app-title').textContent = c.app_title;
+      document.getElementById('app-title').style.color = c.surface_color;
+      document.querySelectorAll('[data-text-color]').forEach(el => el.style.color = c.text_color);
+      const font = `${c.font_family}, sans-serif`;
+      document.getElementById('app').style.fontFamily = font;
+      updateDashboard();
+    },
+    mapToCapabilities: (config) => {
+      const c = { ...defaultConfig, ...config };
+      const make = (key) => ({
+        get: () => c[key] || defaultConfig[key],
+        set: (v) => { c[key] = v; window.elementSdk.setConfig({ [key]: v }); }
+      });
+      return {
+        recolorables: [make('background_color'), make('surface_color'), make('text_color'), make('primary_color'), make('accent_color')],
+        borderables: [],
+        fontEditable: make('font_family'),
+        fontSizeable: make('font_size')
+      };
+    },
+    mapToEditPanelValues: (config) => {
+      const c = { ...defaultConfig, ...config };
+      return new Map([
+        ['app_title', c.app_title],
+        ['currency_symbol', c.currency_symbol]
+      ]);
+    }
+  });
+
+  // Data SDK
+  const dataHandler = {
+    onDataChanged(data) {
+      allData = data;
+      renderList();
+      updateDashboard();
+    }
+  };
+  window.dataSdk.init(dataHandler);
+
+  // Login Handler
+  document.getElementById('login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('login-name').value.trim();
+    if (!name) return;
+    currentUser = name;
+    document.getElementById('user-name').textContent = `👋 ${name}`;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    document.getElementById('inp-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('month-filter').value = currentMonth;
+    lucide.createIcons();
+  });
+
+  // Logout
+  document.getElementById('logout-btn').onclick = () => {
+    currentUser = null;
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('main-app').classList.add('hidden');
+    document.getElementById('login-name').value = '';
+    document.getElementById('login-name').focus();
+  };
+
+  // Month Navigation
+  document.getElementById('prev-month').onclick = () => {
+    const date = new Date(currentMonth + '-01');
+    date.setMonth(date.getMonth() - 1);
+    currentMonth = date.toISOString().slice(0, 7);
+    document.getElementById('month-filter').value = currentMonth;
+    updateDashboard();
+  };
+  document.getElementById('next-month').onclick = () => {
+    const date = new Date(currentMonth + '-01');
+    date.setMonth(date.getMonth() + 1);
+    currentMonth = date.toISOString().slice(0, 7);
+    document.getElementById('month-filter').value = currentMonth;
+    updateDashboard();
+  };
+  document.getElementById('month-filter').addEventListener('change', (e) => {
+    currentMonth = e.target.value;
+    updateDashboard();
+  });
+
+  // Helpers
+  function getCurrency() {
+    const cfg = window.elementSdk.config;
+    return cfg.currency_symbol || defaultConfig.currency_symbol;
+  }
+
+  function fmt(n) {
+    return getCurrency() + ' ' + Number(n).toLocaleString('id-ID');
+  }
+
+  function showToast(msg, success = true) {
+    const t = document.getElementById('toast');
+    t.innerHTML = `<div class="toast px-4 py-2 rounded-lg text-sm font-medium shadow-lg" style="background:${success ? '#166534' : '#dc2626'};color:white;">${msg}</div>`;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 3000);
+  }
+
+  function getMonthData() {
+    return allData.filter(d => (d.date || '').startsWith(currentMonth));
+  }
+
+  function updateDashboard() {
+    const monthData = getMonthData();
+    const income = monthData.filter(d => d.type === 'income').reduce((s, d) => s + (d.amount || 0), 0);
+    const expense = monthData.filter(d => d.type === 'expense').reduce((s, d) => s + (d.amount || 0), 0);
+    const balance = income - expense;
+
+    // Update summary cards
+    document.getElementById('dashboard-income').textContent = fmt(income);
+    document.getElementById('dashboard-expense').textContent = fmt(expense);
+    document.getElementById('dashboard-balance').textContent = fmt(balance);
+
+    // Update chart
+    document.getElementById('chart-income').textContent = fmt(income);
+    document.getElementById('chart-expense').textContent = fmt(expense);
+    const max = Math.max(income, expense, 1);
+    document.getElementById('income-bar').style.width = (income / max * 100) + '%';
+    document.getElementById('expense-bar').style.width = (expense / max * 100) + '%';
+
+    renderList();
+  }
+
+  function renderList() {
+    const container = document.getElementById('tx-list');
+    const empty = document.getElementById('empty-msg');
+    const monthData = getMonthData();
+    
+    if (monthData.length === 0) { 
+      container.innerHTML = ''; 
+      empty.classList.remove('hidden'); 
+      return; 
+    }
+    empty.classList.add('hidden');
+
+    const sorted = [...monthData].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const existingMap = new Map([...container.children].map(el => [el.dataset.id, el]));
+    const fragment = document.createDocumentFragment();
+
+    sorted.forEach(item => {
+      let el = existingMap.get(item.__backendId);
+      if (el) {
+        existingMap.delete(item.__backendId);
+      } else {
+        el = document.createElement('div');
+        el.dataset.id = item.__backendId;
+        el.className = 'flex items-center justify-between p-3 rounded-xl shadow-sm';
+        el.style.backgroundColor = '#ffffff';
+      }
+      const isIncome = item.type === 'income';
+      el.innerHTML = `
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="text-lg">${getCategoryEmoji(item.category)}</span>
+          <div class="min-w-0">
+            <p class="text-sm font-medium truncate" style="color:#166534;">${item.description || '-'}</p>
+            <p class="text-xs opacity-60">${item.date || ''} · ${item.category || ''}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="text-sm font-bold" style="color:${isIncome ? '#166534' : '#dc2626'};">${isIncome ? '+' : '-'}${fmt(item.amount)}</span>
+          <button onclick="confirmDelete('${item.__backendId}')" class="p-1 rounded hover:bg-gray-100"><i data-lucide="trash-2" style="width:14px;height:14px;color:#9ca3af;"></i></button>
+        </div>`;
+      fragment.appendChild(el);
+    });
+
+    existingMap.forEach(el => el.remove());
+    container.innerHTML = '';
+    container.appendChild(fragment);
+    lucide.createIcons();
+  }
+
+  function getCategoryEmoji(cat) {
+    const map = { Makanan:'🍚', Transportasi:'🚌', Belanja:'🛒', Pendidikan:'📚', Kesehatan:'💊', Hiburan:'🎬', Tagihan:'💡', Gaji:'💰', Lainnya:'📌' };
+    return map[cat] || '📌';
+  }
+
+  // Type toggle
+  document.getElementById('btn-income').onclick = () => { txType = 'income'; updateTypeUI(); };
+  document.getElementById('btn-expense').onclick = () => { txType = 'expense'; updateTypeUI(); };
+  function updateTypeUI() {
+    const inc = document.getElementById('btn-income');
+    const exp = document.getElementById('btn-expense');
+    if (txType === 'income') {
+      inc.style.backgroundColor = '#166534'; inc.style.color = '#f0fdf4';
+      exp.style.backgroundColor = 'transparent'; exp.style.color = '#166534';
+    } else {
+      exp.style.backgroundColor = '#166534'; exp.style.color = '#f0fdf4';
+      inc.style.backgroundColor = 'transparent'; inc.style.color = '#166534';
+    }
+  }
+
+  // Form submit
+  document.getElementById('tx-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (allData.length >= 999) { showToast('Batas 999 transaksi tercapai!', false); return; }
+    const btn = document.getElementById('btn-submit');
+    const btnText = document.getElementById('btn-submit-text');
+    btn.disabled = true; btnText.textContent = 'Menyimpan...';
+
+    const desc = document.getElementById('inp-desc').value.trim();
+    const amount = Number(document.getElementById('inp-amount').value);
+    const category = document.getElementById('inp-category').value;
+    const date = document.getElementById('inp-date').value || new Date().toISOString().slice(0, 10);
+
+    const result = await window.dataSdk.create({ description: desc, amount, type: txType, category, date, user_name: currentUser });
+    btn.disabled = false; btnText.textContent = '+ Simpan';
+    if (result.isOk) {
+      showToast('Transaksi tersimpan! ✅');
+      document.getElementById('inp-desc').value = '';
+      document.getElementById('inp-amount').value = '';
+    } else { showToast('Gagal menyimpan', false); }
+  });
+
+  // Delete
+  window.confirmDelete = (id) => {
+    deleteTarget = allData.find(d => d.__backendId === id);
+    document.getElementById('delete-modal').classList.remove('hidden');
+    document.getElementById('delete-modal').classList.add('flex');
+  };
+  document.getElementById('del-cancel').onclick = () => {
+    document.getElementById('delete-modal').classList.add('hidden');
+    document.getElementById('delete-modal').classList.remove('flex');
+  };
+  document.getElementById('del-confirm').onclick = async () => {
+    if (!deleteTarget) return;
+    const result = await window.dataSdk.delete(deleteTarget);
+    document.getElementById('delete-modal').classList.add('hidden');
+    document.getElementById('delete-modal').classList.remove('flex');
+    if (result.isOk) showToast('Transaksi dihapus');
+    else showToast('Gagal menghapus', false);
+    deleteTarget = null;
+  };
+
+  // Init
+  document.getElementById('month-filter').value = currentMonth;
+  lucide.createIcons();
+
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f96d9b942b5df7c',t:'MTc3ODM5NDE1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
